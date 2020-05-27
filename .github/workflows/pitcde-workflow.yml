@@ -1,0 +1,33 @@
+name: PITCDE Build
+on:
+ push:
+   branches:
+     - puzzle-learn
+   tags:
+     - '*puzzle*'
+     - '*pitcde*'
+
+jobs:
+  build:
+    name: Build docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+        id: checkout
+      - name:
+        id: custom
+        run: |
+          echo ::set-output name=branch::$(git branch --show-current)
+          echo ::set-output name=tag::$(git describe --abbrev=0 --tags)
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: dkobras/greenlight/greenlight
+          build_args: version_code=${{ steps.vars.custom.branch }}-${{ steps.vars.custom.tag }}-${{ github.sha }}
+          tag_with_ref: true
+          add_git_labels: true
+
